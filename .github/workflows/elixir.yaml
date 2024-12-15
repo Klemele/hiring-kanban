@@ -17,7 +17,7 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  build:
     services:
       db:
         image: postgres:15
@@ -80,3 +80,5 @@ jobs:
         run: mix format --check-formatted
       - name: Run tests
         run: mix test
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile
