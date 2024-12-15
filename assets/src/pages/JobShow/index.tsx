@@ -1,12 +1,12 @@
-import { useParams } from 'react-router-dom'
-import { useJob, useCandidates } from '../../hooks'
-import { Text } from '@welcome-ui/text'
-import { Flex } from '@welcome-ui/flex'
+import { Badge } from '@welcome-ui/badge'
 import { Box } from '@welcome-ui/box'
+import { Flex } from '@welcome-ui/flex'
+import { Text } from '@welcome-ui/text'
 import { useMemo } from 'react'
+import { useParams } from 'react-router-dom'
 import { Candidate } from '../../api'
 import CandidateCard from '../../components/Candidate'
-import { Badge } from '@welcome-ui/badge'
+import { useCandidates, useJob } from '../../hooks'
 
 type Statuses = 'new' | 'interview' | 'hired' | 'rejected'
 const COLUMNS: Statuses[] = ['new', 'interview', 'hired', 'rejected']
@@ -50,6 +50,7 @@ function JobShow() {
               borderColor="neutral-30"
               borderRadius="md"
               overflow="hidden"
+              key={column}
             >
               <Flex
                 p={10}
@@ -65,7 +66,7 @@ function JobShow() {
               </Flex>
               <Flex direction="column" p={10} pb={0}>
                 {sortedCandidates[column]?.map((candidate: Candidate) => (
-                  <CandidateCard candidate={candidate} />
+                  <CandidateCard key={candidate.id} candidate={candidate} />
                 ))}
               </Flex>
             </Box>
