@@ -1,0 +1,82 @@
+name: Elixir CI
+
+on:
+  push:
+    branches: ["main"] # adapt branch for project
+  pull_request:
+    branches: ["main"] # adapt branch for project
+
+env:
+  MIX_ENV: test
+  POSTGRES_HOST: localhost
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+  POSTGRES_DB: wttj_test
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    services:
+      db:
+        image: postgres:15
+        ports: ["5432:5432"]
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: wttj_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    runs-on: ubuntu-24.04
+    name: OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
+    strategy:
+      matrix:
+        otp: ["27.2"]
+        elixir: ["1.17.3"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{matrix.otp}}
+          elixir-version: ${{matrix.elixir}}
+      - name: Restore dependencies cache
+        id: cache-deps
+        uses: actions/cache@v4
+        env:
+          cache-name: cache-elixir-deps
+        with:
+          path: deps
+          key: ${{ runner.os }}-mix-${{ env.cache-name }}-${{ hashFiles('**/mix.lock') }}-v1
+          restore-keys: |
+            ${{ runner.os }}-mix-${{ env.cache-name }}-v1
+      - name: Restore build cache
+        id: cache-build
+        uses: actions/cache@v4
+        env:
+          cache-name: cache-build
+        with:
+          path: _build
+          key: ${{ runner.os }}-mix-${{ env.cache-name }}-${{ hashFiles('**/mix.lock') }}-v1
+          restore-keys: |
+            ${{ runner.os }}-mix-${{ env.cache-name }}-v1
+            ${{ runner.os }}-mix-
+      - name: Clean cache on job retry
+        if: github.run_attempt != '1'
+        run: |
+          mix deps.clean --all
+          mix clean
+        shell: sh
+      - name: Install dependencies
+        run: mix deps.get
+      - name: Compiles without warnings
+        run: mix compile
+      - name: Check Formatting
+        run: mix format --check-formatted
+      - name: Run tests
+        run: mix test
