@@ -1,0 +1,35 @@
+name: React CI
+
+on:
+  push:
+    branches: ["main"] # adapt branch for project
+  pull_request:
+    branches: ["main"] # adapt branch for project
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: ./assets
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          cache: "yarn"
+          cache-dependency-path: "./assets/yarn.lock"
+      - name: Install dependencies
+        run: yarn --frozen-lockfile
+      - name: Check Formatting
+        run: yarn check-format
+      - name: Lint
+        run: yarn lint
+      - name: Build
+        run: yarn build
+      - name: Run tests
+        run: yarn test
