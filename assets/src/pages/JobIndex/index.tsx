@@ -1,6 +1,6 @@
+import { Link } from '@welcome-ui/link'
 import { Link as RouterLink } from 'react-router-dom'
 import { useJobs } from '../../hooks'
-import { Link } from '@welcome-ui/link'
 
 function JobIndex() {
   const { isLoading, jobs } = useJobs()
@@ -12,7 +12,7 @@ function JobIndex() {
   return (
     <ul>
       {jobs?.map(job => (
-        <li>
+        <li key={job.id}>
           <Link as={RouterLink} to={`/jobs/${job.id}`}>
             {job.name}
           </Link>
