@@ -35,3 +35,11 @@ wttj-*.tar
 npm-debug.log
 /assets/node_modules/
 
+# environment variables file
+.env
+
+# vscode file
+.vscode
+
+# tsbuildinfo file
+assets/tsconfig.*.tsbuildinfo
