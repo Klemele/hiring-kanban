@@ -43,9 +43,15 @@ function Column({ name, candidates, id }: ColumnProps) {
         <Badge>{candidates.length}</Badge>
       </Flex>
       <Flex direction="column" p={10} pb={0}>
-        {candidates.map((candidate: Candidate) => (
-          <CandidateCard key={candidate.id} candidate={candidate} id={candidate.id} />
-        ))}
+        {candidates.length === 0 ? (
+          <Text color="neutral-40" textAlign="center">
+            No candidates
+          </Text>
+        ) : (
+          candidates.map((candidate: Candidate) => (
+            <CandidateCard key={candidate.id} candidate={candidate} id={candidate.id} />
+          ))
+        )}
       </Flex>
     </Box>
   )
