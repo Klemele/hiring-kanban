@@ -1,3 +1,4 @@
+import { useDroppable } from '@dnd-kit/core'
 import { Badge } from '@welcome-ui/badge'
 import { Box } from '@welcome-ui/box'
 import { Flex } from '@welcome-ui/flex'
@@ -5,15 +6,29 @@ import { Text } from '@welcome-ui/text'
 import { Candidate } from '../../api'
 import CandidateCard from '../Candidate'
 
-function Column({ name, candidates }: { name: string; candidates: Candidate[] }) {
+interface ColumnProps {
+  name: string
+  candidates: Candidate[]
+  id: number
+}
+
+function Column({ name, candidates, id }: ColumnProps) {
+  const { isOver, setNodeRef } = useDroppable({
+    id: id,
+    data: {
+      column: name,
+    },
+  })
+
   return (
     <Box
+      ref={setNodeRef}
       w={300}
       border={1}
-      backgroundColor="white"
+      backgroundColor={isOver ? 'yellow-20' : 'white'}
       borderColor="neutral-30"
       borderRadius="md"
-      overflow="hidden"
+      overflow="true"
     >
       <Flex
         p={10}
