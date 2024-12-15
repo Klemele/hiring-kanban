@@ -4,7 +4,7 @@ import { Flex } from '@welcome-ui/flex'
 import { Text } from '@welcome-ui/text'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Candidate } from '../../api'
+import { Candidate, updateCandidate } from '../../api'
 import Column from '../../components/Column'
 import { useCandidates, useJob } from '../../hooks'
 
@@ -28,6 +28,7 @@ function JobShow() {
     hired: [],
     rejected: [],
   })
+  const [candidatesToUpdate, setCandidatesToUpdate] = useState<Candidate[] | undefined>([])
 
   useEffect(() => {
     if (!candidates) return
@@ -43,6 +44,18 @@ function JobShow() {
     )
   }, [candidates])
 
+  useEffect(() => {
+    async function updateCandidates() {
+      if (!jobId || !candidatesToUpdate) return
+
+      for (const candidate of candidatesToUpdate) {
+        await updateCandidate(jobId, candidate)
+      }
+    }
+
+    updateCandidates()
+  }, [candidatesToUpdate, jobId])
+
   const onDragEnd = ({ active, over }: DragEndEvent) => {
     if (!over?.data.current || !active.data.current) return
     const currentCandidate: Candidate = active.data.current.candidate
@@ -55,14 +68,14 @@ function JobShow() {
     }
 
     if (fromColumn !== toColumn) {
-      const candidatesToUpdate: Candidate[] = []
+      const candidatesToBeUpdated: Candidate[] = []
       const updatedFromColumn = sortedCandidates[fromColumn].reduce<Candidate[]>(
         (acc, candidate) => {
           if (candidate.id !== currentCandidate.id) {
             if (candidate.position > currentCandidate.position) {
               const candidateToUpdate = { ...candidate, position: candidate.position - 1 }
 
-              candidatesToUpdate.push(candidateToUpdate)
+              candidatesToBeUpdated.push(candidateToUpdate)
               acc.push(candidateToUpdate)
             } else {
               acc.push(candidate)
@@ -79,6 +92,7 @@ function JobShow() {
         [fromColumn]: updatedFromColumn,
         [toColumn]: updatedToColumn,
       })
+      setCandidatesToUpdate([updatedCandidate, ...candidatesToBeUpdated])
     }
   }
 
