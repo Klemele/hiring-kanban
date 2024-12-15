@@ -49,13 +49,13 @@ COPY priv priv
 
 COPY lib lib
 
-COPY assets assets
-
 # compile assets
 RUN mix assets.deploy
 
 # Compile the release
 RUN mix compile
+
+
 
 # Changes to config/runtime.exs don't require recompiling the code
 COPY config/runtime.exs config/
@@ -68,18 +68,18 @@ RUN mix release
 FROM ${RUNNER_IMAGE}
 
 RUN apt-get update -y && \
-  apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates \
+  apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates postgresql-client\
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 # Set the locale
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV LC_ALL=en_US.UTF-8
 
 WORKDIR "/app"
-RUN chown -R nobody /app
+COPY entrypoint.sh .
 
 # set runner ENV
 ENV MIX_ENV="prod"
@@ -87,11 +87,14 @@ ENV MIX_ENV="prod"
 # Only copy the final release from the build stage
 COPY --from=builder --chown=app:app /app/_build/${MIX_ENV}/rel/wttj ./
 
+RUN chown -R nobody /app
 USER nobody
+
+EXPOSE 4000
 
 # If using an environment that doesn't automatically reap zombie processes, it is
 # advised to add an init process such as tini via `apt-get install`
 # above and adding an entrypoint. See https://github.com/krallin/tini for details
 # ENTRYPOINT ["/tini", "--"]
 
-CMD ["/app/bin/server"]
+CMD ["bash", "/app/entrypoint.sh"]
