@@ -4,6 +4,7 @@ import { Flex } from '@welcome-ui/flex'
 import { Text } from '@welcome-ui/text'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { toast } from 'sonner'
 import { Candidate, updateCandidate } from '../../api'
 import Column from '../../components/Column'
 import { useCandidates, useJob } from '../../hooks'
@@ -49,7 +50,13 @@ function JobShow() {
       if (!jobId || !candidatesToUpdate) return
 
       for (const candidate of candidatesToUpdate) {
-        await updateCandidate(jobId, candidate)
+        try {
+          await updateCandidate(jobId, candidate)
+        } catch (error) {
+          if (error instanceof Error) {
+            toast.error(error.message)
+          }
+        }
       }
     }
 
