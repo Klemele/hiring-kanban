@@ -29,3 +29,19 @@ export const getCandidates = async (jobId?: string): Promise<Candidate[]> => {
   const { data } = await response.json()
   return data
 }
+
+export const updateCandidate = async (jobId: string, candidate: Candidate): Promise<Candidate> => {
+  const headers = new Headers()
+  headers.append('Content-Type', 'application/json')
+  const response = await fetch(
+    `http://localhost:4000/api/jobs/${jobId}/candidates/${candidate.id}`,
+    {
+      method: 'PUT',
+      body: JSON.stringify({ candidate }),
+      headers,
+    }
+  )
+  const { data } = await response.json()
+
+  return data
+}
