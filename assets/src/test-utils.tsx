@@ -1,8 +1,9 @@
+import { render, RenderOptions } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { createTheme, WuiProvider } from '@welcome-ui/core'
 import { FC, PropsWithChildren, ReactNode } from 'react'
 import { QueryClient, QueryClientProvider } from 'react-query'
-import { render, RenderOptions } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { Candidate } from './api'
 
 type AllTheProvidersProps = PropsWithChildren
 
@@ -23,6 +24,14 @@ export const AllTheProviders: FC<AllTheProvidersProps> = ({ children }) => {
       <WuiProvider theme={theme}>{children}</WuiProvider>
     </QueryClientProvider>
   )
+}
+
+export const generateCandidates = (count: number): Candidate[] => {
+  const candidates: Candidate[] = []
+  for (let i = 0; i < count; i++) {
+    candidates.push({ id: i, email: `test${i}@example.com`, position: i, status: 'new' })
+  }
+  return candidates
 }
 
 const customRender = (ui: ReactNode, options?: Omit<RenderOptions, 'wrapper'>) => {

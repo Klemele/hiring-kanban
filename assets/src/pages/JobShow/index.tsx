@@ -7,8 +7,8 @@ import { useParams } from 'react-router-dom'
 import { Candidate, updateCandidate } from '../../api'
 import Column from '../../components/Column'
 import { useCandidates, useJob } from '../../hooks'
+import { Statuses } from '../../types'
 
-type Statuses = 'new' | 'interview' | 'hired' | 'rejected'
 const COLUMNS: Statuses[] = ['new', 'interview', 'hired', 'rejected']
 
 interface SortedCandidates {
