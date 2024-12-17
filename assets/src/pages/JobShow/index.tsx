@@ -67,7 +67,7 @@ function JobShow() {
       if (!jobId || !candidatesToUpdate || !channel) return
 
       const updateJobCandidate = (id: string, candidateParams: Candidate) => {
-        channel.push('update_candidate', { job_id: jobId, candidate: candidateParams })
+        channel.push('update_candidate', { job_id: id, candidate: candidateParams })
       }
 
       for (const candidate of candidatesToUpdate) {
