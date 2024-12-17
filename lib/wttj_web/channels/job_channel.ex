@@ -27,17 +27,23 @@ defmodule WttjWeb.JobChannel do
       ) do
     case candidate_params do
       %{"id" => id} ->
-        case Candidates.get_candidate!(job_id, id) do
+        case Candidates.get_candidate(job_id, id) do
           nil ->
             {:reply, {:error, "candidate_not_found"}, socket}
 
+          Ecto.NoResultsError ->
+            {:reply, {:error, "candidate_not_found"}, socket}
+
           candidate ->
+            # Attempt to update the candidate
             case Candidates.update_candidate(candidate, candidate_params) do
               {:ok, updated_candidate} ->
+                # Successfully updated candidate
                 broadcast!(socket, "candidate_updated", %{candidate: updated_candidate})
                 {:noreply, socket}
 
               {:error, _changeset} ->
+                # Failed to update candidate
                 {:reply, {:error, "update_failed"}, socket}
             end
         end
