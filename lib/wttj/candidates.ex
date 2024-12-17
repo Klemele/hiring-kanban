@@ -37,6 +37,9 @@ defmodule Wttj.Candidates do
 
   """
   def get_candidate!(job_id, id), do: Repo.get_by!(Candidate, id: id, job_id: job_id)
+  # TODO Document
+  #  This is to avoid an exception when the candidate is not found in job channel
+  def get_candidate(job_id, id), do: Repo.get_by(Candidate, id: id, job_id: job_id)
 
   @doc """
   Creates a candidate.
