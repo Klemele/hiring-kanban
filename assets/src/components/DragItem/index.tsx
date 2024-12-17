@@ -1,5 +1,5 @@
-import { useDraggable } from '@dnd-kit/core'
-
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 interface DragItemProps<T extends Record<string, any>> {
   data: T
@@ -9,15 +9,12 @@ interface DragItemProps<T extends Record<string, any>> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function DragItem<T extends Record<string, any>>({ id, data, children }: DragItemProps<T>) {
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({
-    id,
-    data,
-  })
-  const style = transform
-    ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-      }
-    : undefined
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id, data })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  }
 
   return (
     <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
