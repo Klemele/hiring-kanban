@@ -1,6 +1,7 @@
 import { Channel, Socket } from 'phoenix'
 import { useEffect, useState } from 'react'
 import { useQuery } from 'react-query'
+import { toast } from 'sonner'
 import { getCandidates, getJob, getJobs } from '../api'
 
 export const useJobs = () => {
@@ -44,8 +45,8 @@ export const useSocketChannel = (endpoint: string, topic: string, subtopic = '')
     setSocket(socketInstance)
     channelInstance
       .join()
-      .receive('ok', () => console.log('Joined successfully'))
-      .receive('error', () => console.log('Unable to join'))
+      .receive('ok', () => toast.info('Connected to the server'))
+      .receive('error', () => toast.error('Unable to join the server'))
     setChannel(channelInstance)
 
     return () => {
