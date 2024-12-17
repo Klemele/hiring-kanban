@@ -3,11 +3,12 @@ import { Candidate } from '../../api'
 
 interface CandidateCardProps {
   candidate: Candidate
+  ref?: React.Ref<HTMLDivElement> | undefined
 }
 
-function CandidateCard({ candidate }: CandidateCardProps) {
+function CandidateCard({ candidate, ref }: CandidateCardProps) {
   return (
-    <Card mb={10}>
+    <Card mb={10} ref={ref}>
       <Card.Body>{candidate.email}</Card.Body>
     </Card>
   )
