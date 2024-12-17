@@ -149,6 +149,30 @@ The React CI workflow ensures that the frontend code is properly tested, formatt
 
 ---
 
+1. Implement drag-and-drop functionality for cards:
+
+- Within the same column
+- Between different columns
+- Ensure proper handling of card positioning and ordering
+- Maintain data consistency
+
+Done in the frontend with dnd-kit.
+Sorting and ordering is done in the front to prevent complexity in the backend.
+Only impacted candidates are updated in the backend
+
+Tradeoffs:
+
+- Due to the index constraint, on same column re-ordering, a double update is needed to avoid index clash
+- Poorly optimized for huge datasets:
+
+  - onDragMove is called on every candidate move, thus re-rendering the whole list
+
+Missing:
+
+- E2E testing
+
+---
+
 ## Learn more
 
 - Official website: https://www.phoenixframework.org/

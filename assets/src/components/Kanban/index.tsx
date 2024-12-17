@@ -68,7 +68,7 @@ function Kanban({ sortedCandidates, setSortedCandidates, setCandidatesToUpdate }
         ? prev[toColumn].length
         : over.data.current.sortable.index
 
-      // Drag over a column
+      // Case: Drag over another column
       if (fromColumn !== toColumn) {
         return {
           ...prev,
@@ -83,8 +83,8 @@ function Kanban({ sortedCandidates, setSortedCandidates, setCandidatesToUpdate }
           ],
         }
       }
+      // Case: Drag over same column
       if (fromColumn === toColumn && !isDraggingOverColumn) {
-        // Drag over same column
         if (newIndex > activeCandidateIndex) {
           return {
             ...prev,
