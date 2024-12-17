@@ -10,6 +10,10 @@
 
 ## Getting started
 
+For a quick and easy setup, you can use the docker-compose file provided in the root directory, see instructions below.
+
+### Setup
+
 To start your Phoenix server:
 
 - Run `mix setup` to install and setup dependencies

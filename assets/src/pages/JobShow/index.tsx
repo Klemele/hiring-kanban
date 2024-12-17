@@ -4,15 +4,16 @@ import { Text } from '@welcome-ui/text'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
-import { Candidate, updateCandidate } from '../../api'
+import { Candidate } from '../../api'
 import Kanban from '../../components/Kanban'
-import { useCandidates, useJob } from '../../hooks'
+import { useJob, useSocketChannel } from '../../hooks'
 import { SortedCandidates } from '../../types'
 
 function JobShow() {
   const { jobId } = useParams()
   const { job } = useJob(jobId)
-  const { candidates } = useCandidates(jobId)
+  const [candidates, setCandidates] = useState<Candidate[]>([])
+  const { channel } = useSocketChannel('job', 'jobs', jobId)
   const [sortedCandidates, setSortedCandidates] = useState<SortedCandidates>({
     new: [],
     interview: [],
@@ -20,6 +21,32 @@ function JobShow() {
     rejected: [],
   })
   const [candidatesToUpdate, setCandidatesToUpdate] = useState<Candidate[] | undefined>([])
+
+  useEffect(() => {
+    if (!channel) return
+
+    channel.on('candidates_data', payload => {
+      setCandidates(payload.candidates)
+    })
+    channel.on('candidate_updated', payload => {
+      const found = candidates?.find(candidate => candidate.id === payload.candidate.id)
+
+      if (!found) {
+        setCandidates([...candidates, payload.candidate])
+      } else {
+        candidates.splice(candidates.indexOf(found), 1, payload.candidate)
+        setCandidates(candidates)
+      }
+    })
+  }, [candidates, channel])
+
+  useEffect(() => {
+    if (!channel) {
+      return
+    }
+
+    channel.push('get_candidates', { job_id: jobId })
+  }, [jobId, channel])
 
   useEffect(() => {
     if (!candidates) return
@@ -37,11 +64,15 @@ function JobShow() {
 
   useEffect(() => {
     async function updateCandidates() {
-      if (!jobId || !candidatesToUpdate) return
+      if (!jobId || !candidatesToUpdate || !channel) return
+
+      const updateJobCandidate = (id: string, candidateParams: Candidate) => {
+        channel.push('update_candidate', { job_id: jobId, candidate: candidateParams })
+      }
 
       for (const candidate of candidatesToUpdate) {
         try {
-          await updateCandidate(jobId, candidate)
+          await updateJobCandidate(jobId, candidate)
         } catch (error) {
           if (error instanceof Error) {
             toast.error(error.message)
@@ -51,7 +82,7 @@ function JobShow() {
     }
 
     updateCandidates()
-  }, [candidatesToUpdate, jobId])
+  }, [candidatesToUpdate, channel, jobId])
 
   return (
     <>
