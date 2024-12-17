@@ -5,6 +5,7 @@ import { Flex } from '@welcome-ui/flex'
 import { Text } from '@welcome-ui/text'
 import { Candidate } from '../../api'
 import CandidateCard from '../Candidate'
+import DragItem from '../DragItem'
 
 interface ColumnProps {
   name: string
@@ -49,7 +50,9 @@ function Column({ name, candidates, id }: ColumnProps) {
           </Text>
         ) : (
           candidates.map((candidate: Candidate) => (
-            <CandidateCard key={candidate.id} candidate={candidate} id={candidate.id} />
+            <DragItem key={candidate.id} id={candidate.id} data={candidate}>
+              <CandidateCard candidate={candidate} />
+            </DragItem>
           ))
         )}
       </Flex>
