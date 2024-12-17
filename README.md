@@ -175,6 +175,21 @@ Missing:
 
 - E2E testing
 
+2. Real-time Collaboration
+
+- Implement real-time synchronization between users
+- Handle concurrent operations gracefully
+- Choose and justify your real-time solution (WebSocket, SSE, etc.)
+
+Chose websockets because it is a commonly used protocol and has a lot of support in the ecosystem.
+Its also a good fit because its build on top of the Phoenix framework. (easy to integrate, generate, use, etc.)
+
+BONUS:
+
+- CI github-actions
+- Docker mode
+  - TODO: dev mode
+
 ---
 
 ## Learn more
