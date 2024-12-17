@@ -35,7 +35,7 @@ function JobShow() {
         setCandidates([...candidates, payload.candidate])
       } else {
         candidates.splice(candidates.indexOf(found), 1, payload.candidate)
-        setCandidates(candidates)
+        setCandidates([...candidates])
       }
     })
   }, [candidates, channel])
