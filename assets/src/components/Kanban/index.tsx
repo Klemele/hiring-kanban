@@ -55,29 +55,67 @@ function Kanban({ sortedCandidates, setSortedCandidates, setCandidatesToUpdate }
       ? over.data.current.column
       : over.data.current.sortable.containerId
 
-    // Prevent reording candidates when dragging over the same column as it's already handle natively
-    if (!fromColumn || !toColumn || fromColumn === toColumn) {
+    if (!fromColumn || !toColumn) {
       return
     }
 
     // Visual sorting of candidates while dragging
     setSortedCandidates(prev => {
-      if (!over?.data.current || !active.data.current) return prev
+      if (!over?.data.current || !active.data.current || active.id === over.id) return prev
 
-      const toColumnCandidates = prev[toColumn]
       const activeCandidateIndex = active.data.current.position
+      const newIndex = isDraggingOverColumn
+        ? prev[toColumn].length
+        : over.data.current.sortable.index
 
-      return {
-        ...prev,
-        [fromColumn]: [...prev[fromColumn].filter(item => item.id !== active.id)],
-        [toColumn]: [
-          ...prev[toColumn],
-          {
-            ...sortedCandidates[fromColumn][activeCandidateIndex],
-            position: toColumnCandidates.length,
-          },
-        ],
+      // Drag over a column
+      if (fromColumn !== toColumn) {
+        return {
+          ...prev,
+          [fromColumn]: [...prev[fromColumn].filter(item => item.id !== active.id)],
+          [toColumn]: [
+            ...prev[toColumn].slice(0, newIndex),
+            {
+              ...sortedCandidates[fromColumn][activeCandidateIndex],
+              position: newIndex,
+            },
+            ...prev[toColumn].slice(newIndex, prev[toColumn].length),
+          ],
+        }
       }
+      if (fromColumn === toColumn && !isDraggingOverColumn) {
+        // Drag over same column
+        if (newIndex > activeCandidateIndex) {
+          return {
+            ...prev,
+            [toColumn]: [
+              ...prev[toColumn].slice(0, activeCandidateIndex),
+              prev[toColumn][newIndex],
+              {
+                ...sortedCandidates[toColumn][activeCandidateIndex],
+                position: newIndex,
+              },
+              ...prev[toColumn].slice(newIndex + 1, prev[toColumn].length),
+            ],
+          }
+        }
+        if (newIndex < activeCandidateIndex) {
+          return {
+            ...prev,
+            [toColumn]: [
+              ...prev[toColumn].slice(0, newIndex),
+              {
+                ...sortedCandidates[toColumn][activeCandidateIndex],
+                position: newIndex,
+              },
+              ...prev[toColumn].slice(newIndex, activeCandidateIndex),
+              ...prev[toColumn].slice(activeCandidateIndex + 1, prev[toColumn].length),
+            ],
+          }
+        }
+      }
+
+      return prev
     })
   }
 
@@ -87,7 +125,6 @@ function Kanban({ sortedCandidates, setSortedCandidates, setCandidatesToUpdate }
     setActiveCandidate(active.data.current as Candidate & SortableData)
   }
 
-  // TODO: Sort in the same column
   const onDragEnd = ({ active, over }: DragEndEvent) => {
     if (!over?.data.current || !active.data.current?.sortable) {
       return
@@ -100,69 +137,113 @@ function Kanban({ sortedCandidates, setSortedCandidates, setCandidatesToUpdate }
       return
     }
 
-    const newActiveCandidatePosition =
-      over.id !== activeCandidate.id
-        ? over.data.current.position
-        : // Case end of column, where the dragged element overlap itself
-          sortedCandidates[toColumn].length - 1
     const candidatesToBeUpdated: Candidate[] = []
+    let updatedFromColumn: Candidate[] = []
+    let updatedToColumn: Candidate[] = []
+    let candidateDraggedOver: Candidate | undefined
 
-    const updatedToColumn = sortedCandidates[toColumn].reduce<Candidate[]>((acc, candidate) => {
-      const updatedCandidatePosition = candidate
+    // Case: move from one column to another
+    if (fromColumn !== toColumn) {
+      updatedToColumn = sortedCandidates[toColumn].reduce<Candidate[]>((acc, candidate, index) => {
+        // Dragged Over candidate need to be updated afterwards to respect indexing
+        if (candidate.id === activeCandidate.id) {
+          candidateDraggedOver = { ...candidate, status: toColumn }
 
-      if (candidate.position >= newActiveCandidatePosition && candidate.id !== activeCandidate.id) {
-        updatedCandidatePosition.position += 1
+          acc.push(candidateDraggedOver)
 
-        // Only update candidate impacted by the drag
-        candidatesToBeUpdated.unshift({ ...updatedCandidatePosition })
-      }
-
-      // Update the position of the candidate being dragged
-      if (candidate.id === activeCandidate.id) {
-        updatedCandidatePosition.position = newActiveCandidatePosition
-        acc.splice(newActiveCandidatePosition, 0, updatedCandidatePosition)
-
-        return acc
-      }
-
-      acc.push(updatedCandidatePosition)
-      return acc
-    }, [])
-
-    // Remove sortable props from the candidate being dragged over
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { sortable: _, ...candidateDraggedOver } = activeCandidate
-    candidatesToBeUpdated.push({
-      ...candidateDraggedOver,
-      position: newActiveCandidatePosition,
-      status: toColumn as Statuses,
-    })
-
-    const updatedFromColumn = sortedCandidates[fromColumn].reduce<Candidate[]>(
-      (acc, candidate, index) => {
-        const updatedCandidatePosition = candidate
-
-        if (candidate.position !== index) {
-          updatedCandidatePosition.position = index
-
-          // Only update candidate impacted by the drag
-          candidatesToBeUpdated.push({ ...updatedCandidatePosition })
+          return acc
         }
 
-        acc.push(updatedCandidatePosition)
+        // Update only candidate impacted by the drag
+        if (candidate.position != index) {
+          const updatedCandidate = { ...candidate, position: index }
+
+          candidatesToBeUpdated.unshift(updatedCandidate)
+          acc.push(updatedCandidate)
+        } else {
+          acc.push(candidate)
+        }
 
         return acc
-      },
-      []
-    )
+      }, [])
 
-    setActiveCandidate(null)
+      // Insert candidate impacted by the drag in the update list
+      if (candidateDraggedOver) {
+        candidatesToBeUpdated.push(candidateDraggedOver)
+      }
+
+      updatedFromColumn = sortedCandidates[fromColumn].reduce<Candidate[]>(
+        (acc, candidate, index) => {
+          // Update only candidate impacted by the drag
+          if (candidate.position != index) {
+            const candidateUpdated = { ...candidate, position: index }
+
+            acc.push(candidateUpdated)
+            candidatesToBeUpdated.push(candidateUpdated)
+
+            return acc
+          }
+
+          acc.push(candidate)
+
+          return acc
+        },
+        []
+      )
+    }
+
+    // Case: reorder candidates in the same column
+    if (fromColumn === toColumn) {
+      // Need to use a modifier for indexing to preserve unique constraint candidate_status_position
+      // WIll reapply correct indexing afterwards
+      const modifier = sortedCandidates[toColumn].length
+
+      updatedToColumn = sortedCandidates[toColumn].reduce<Candidate[]>((acc, candidate, index) => {
+        if (candidate.id === activeCandidate.id) {
+          candidateDraggedOver = {
+            ...candidate,
+            status: toColumn,
+            position: candidate.position + modifier,
+          }
+        }
+
+        // Update only candidate impacted by the drag
+        if (candidate.position != index) {
+          const updatedCandidate = { ...candidate, position: index + modifier }
+
+          // Update only candidate impacted by the drag
+          candidatesToBeUpdated.unshift({ ...updatedCandidate })
+          acc.push(updatedCandidate)
+        } else {
+          acc.push(candidate)
+        }
+
+        return acc
+      }, [])
+
+      // Insert candidate impacted by the drag in the update list
+      if (candidateDraggedOver) {
+        candidatesToBeUpdated.push(candidateDraggedOver)
+      }
+
+      // Re-index correctly candidates in the same column
+      updatedToColumn.map((candidate, index) => {
+        if (candidate.position != index || candidate.id === activeCandidate.id) {
+          candidate.position = index
+          candidatesToBeUpdated.push(candidate)
+        }
+
+        return candidate
+      })
+    }
+
     setSortedCandidates(items => ({
       ...items,
-      [fromColumn]: updatedFromColumn,
       [toColumn]: updatedToColumn,
+      ...(fromColumn !== toColumn ? { [fromColumn]: updatedFromColumn } : {}),
     }))
     setCandidatesToUpdate(candidatesToBeUpdated)
+    setActiveCandidate(null)
   }
 
   return (
