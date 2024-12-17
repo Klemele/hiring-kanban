@@ -6,6 +6,6 @@ import { render } from '../../test-utils'
 
 test('renders candidate email', () => {
   const candidate: Candidate = { id: 10, email: 'test@example.com', position: 1, status: 'new' }
-  const { getByText } = render(<CandidateCard id={candidate.id} candidate={candidate} />)
+  const { getByText } = render(<CandidateCard candidate={candidate} />)
   expect(getByText('test@example.com')).toBeInTheDocument()
 })

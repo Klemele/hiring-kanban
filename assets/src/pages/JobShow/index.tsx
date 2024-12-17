@@ -65,7 +65,7 @@ function JobShow() {
 
   const onDragEnd = ({ active, over }: DragEndEvent) => {
     if (!over?.data.current || !active.data.current) return
-    const currentCandidate: Candidate = active.data.current.candidate
+    const currentCandidate: Candidate = active.data.current as Candidate
     const fromColumn: Statuses = currentCandidate.status
     const toColumn: Statuses = over.data.current.column
     const updatedCandidate = {
@@ -110,7 +110,6 @@ function JobShow() {
           {job?.name}
         </Text>
       </Box>
-
       <Box p={20} overflow="hidden">
         <Flex gap={10}>
           <DndContext onDragEnd={onDragEnd}>
