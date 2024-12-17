@@ -1,3 +1,5 @@
+import { Channel, Socket } from 'phoenix'
+import { useEffect, useState } from 'react'
 import { useQuery } from 'react-query'
 import { getCandidates, getJob, getJobs } from '../api'
 
@@ -28,4 +30,29 @@ export const useCandidates = (jobId?: string) => {
   })
 
   return { isLoading, error, candidates: data }
+}
+
+export const useSocketChannel = (endpoint: string, topic: string, subtopic = '') => {
+  const [socket, setSocket] = useState<Socket>()
+  const [channel, setChannel] = useState<Channel>()
+
+  useEffect(() => {
+    const socketInstance = new Socket(`http://localhost:4000/${endpoint}`, {})
+    const channelInstance = socketInstance.channel(`${topic}:${subtopic}`, {})
+
+    socketInstance.connect()
+    setSocket(socketInstance)
+    channelInstance
+      .join()
+      .receive('ok', () => console.log('Joined successfully'))
+      .receive('error', () => console.log('Unable to join'))
+    setChannel(channelInstance)
+
+    return () => {
+      channelInstance.leave()
+      socketInstance.disconnect()
+    }
+  }, [endpoint, topic, subtopic])
+
+  return { socket, channel }
 }
