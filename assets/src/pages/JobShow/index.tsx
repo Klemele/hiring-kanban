@@ -6,7 +6,10 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Candidate, updateCandidate } from '../../api'
+import CandidateCard from '../../components/Candidate'
 import Column from '../../components/Column'
+import DragItem from '../../components/DragItem'
+import DropContainer from '../../components/DropContainer'
 import { useCandidates, useJob } from '../../hooks'
 import { Statuses } from '../../types'
 
@@ -113,8 +116,32 @@ function JobShow() {
       <Box p={20} overflow="hidden">
         <Flex gap={10}>
           <DndContext onDragEnd={onDragEnd}>
-            {COLUMNS.map((column, index) => (
-              <Column name={column} candidates={sortedCandidates[column]} id={index} key={column} />
+            {COLUMNS.map(column => (
+              <DropContainer
+                id={column}
+                data={{ column }}
+                renderItem={(isOver, setNodeRef) => (
+                  <Column
+                    name={column}
+                    size={sortedCandidates[column].length}
+                    isOver={isOver}
+                    ref={setNodeRef}
+                  >
+                    {sortedCandidates[column].length === 0 ? (
+                      <Text color="neutral-40" textAlign="center">
+                        No candidates
+                      </Text>
+                    ) : (
+                      sortedCandidates[column].map((candidate: Candidate) => (
+                        <DragItem key={candidate.id} id={candidate.id} data={candidate}>
+                          <CandidateCard candidate={candidate} />
+                        </DragItem>
+                      ))
+                    )}
+                  </Column>
+                )}
+                key={column}
+              />
             ))}
           </DndContext>
         </Flex>
