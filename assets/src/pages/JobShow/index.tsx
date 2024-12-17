@@ -24,8 +24,8 @@ import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Candidate, updateCandidate } from '../../api'
 import CandidateCard from '../../components/Candidate'
+import CandidateList from '../../components/CandidateList'
 import Column from '../../components/Column'
-import DragItem from '../../components/DragItem'
 import DropContainer from '../../components/DropContainer'
 import { useCandidates, useJob } from '../../hooks'
 import { SortedCandidates, Statuses } from '../../types'
@@ -240,17 +240,7 @@ function JobShow() {
                       isOver={isOver}
                       ref={setNodeRef}
                     >
-                      {sortedCandidates[column].length === 0 ? (
-                        <Text color="neutral-40" textAlign="center">
-                          No candidates
-                        </Text>
-                      ) : (
-                        sortedCandidates[column].map((candidate: Candidate) => (
-                          <DragItem key={candidate.id} id={candidate.id} data={candidate}>
-                            <CandidateCard candidate={candidate} />
-                          </DragItem>
-                        ))
-                      )}
+                      <CandidateList candidates={sortedCandidates[column]} />
                     </Column>
                   )}
                   key={column}
